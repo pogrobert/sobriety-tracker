@@ -183,6 +183,29 @@ export async function getJournalEntries(): Promise<JournalEntry[]> {
 }
 
 /**
+ * Delete a journal entry by ID
+ * @param id The ID of the journal entry to delete
+ */
+export async function deleteJournalEntry(id: string): Promise<void> {
+  try {
+    // Get existing entries
+    const existingEntries = await getJournalEntries();
+
+    // Filter out the entry with the given ID
+    const updatedEntries = existingEntries.filter((entry) => entry.id !== id);
+
+    // Save back to storage
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.JOURNAL_ENTRIES,
+      JSON.stringify(updatedEntries)
+    );
+  } catch (error) {
+    console.error('Error deleting journal entry:', error);
+    throw new Error('Failed to delete journal entry');
+  }
+}
+
+/**
  * Generate a unique ID for entries
  * @returns A unique string ID
  */
