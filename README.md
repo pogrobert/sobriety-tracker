@@ -1,6 +1,6 @@
-# Welcome to your Expo app 👋
+# Sobriety Tracker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native Expo app built with TypeScript for tracking sobriety milestones. This app features a calming, supportive design with a carefully chosen color palette to create a peaceful and encouraging user experience.
 
 ## Get started
 
@@ -25,15 +25,65 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## Get a fresh project
+## Project Structure
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+sobriety-tracker/
+├── app/              # App screens and routing
+│   ├── (tabs)/       # Tab-based navigation screens
+│   └── _layout.tsx   # Root layout with theme provider
+├── components/       # Reusable UI components
+├── constants/        # Theme configuration and constants
+│   └── theme.ts      # Color palette and styling constants
+├── utils/            # Utility functions and helpers
+├── assets/           # Images, fonts, and other static assets
+└── hooks/            # Custom React hooks
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Color Palette
+
+The app uses a calming, supportive color scheme:
+
+- **Primary**: `#7C9885` (sage green) - Main brand color
+- **Secondary**: `#E8DCC4` (warm beige) - Supporting color
+- **Accent**: `#D4A574` (soft terracotta) - Highlights and CTAs
+- **Text**: `#3A3A3A` (soft black) - Primary text
+- **Background**: `#F5F3EE` (off-white cream) - App background
+- **Success**: `#9BC4BC` (soft teal) - Achievements and milestones
+
+All colors are defined in `constants/theme.ts` with both light and dark mode support.
+
+## Key Dependencies
+
+- **expo-router**: File-based routing and navigation
+- **react-native-reanimated**: Smooth animations
+- **react-native-svg**: SVG support for custom graphics
+- **@react-native-async-storage/async-storage**: Local data persistence
+- **expo-haptics**: Tactile feedback
+
+## Theme Usage
+
+Import and use theme constants in your components:
+
+```typescript
+import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+
+function MyComponent() {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+
+  return (
+    <View style={{
+      backgroundColor: colors.background,
+      padding: Spacing.md,
+      borderRadius: BorderRadius.lg
+    }}>
+      <Text style={{ color: colors.text }}>Hello!</Text>
+    </View>
+  );
+}
+```
 
 ## Learn more
 
