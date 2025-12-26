@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeOut, SlideInDown } from 'react-native-reanimated';
-import { saveUrgeLog } from '../utils/storage';
+import { saveUrgeLog, type EmergencyContact } from '../utils/storage';
 
 interface UrgeButtonProps {
-  /** Optional emergency contact phone number */
-  emergencyContact?: string;
+  /** Optional emergency contact */
+  emergencyContact?: EmergencyContact | null;
   /** Callback when urge is successfully logged */
   onUrgeLogged?: () => void;
 }
@@ -76,15 +76,16 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     if (!emergencyContact) {
+      // Gentle, supportive message when no contact is set
       Alert.alert(
-        'No Emergency Contact',
-        'You haven\'t set up an emergency contact yet. Would you like to add one in settings?',
-        [{ text: 'OK' }]
+        'Add a Support Person',
+        'Consider adding someone who supports your journey. Having a trusted person to reach out to can make all the difference.',
+        [{ text: 'Maybe Later' }]
       );
       return;
     }
 
-    const phoneNumber = emergencyContact.replace(/[^0-9+]/g, '');
+    const phoneNumber = emergencyContact.phone.replace(/[^0-9+]/g, '');
     const url = `tel:${phoneNumber}`;
 
     try {
@@ -230,11 +231,13 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
                     <TouchableOpacity
                       style={[styles.actionButton, styles.emergencyButton]}
                       onPress={handleCallEmergencyContact}
-                      accessibilityLabel="Call emergency contact"
+                      accessibilityLabel={emergencyContact ? `Call ${emergencyContact.name}` : 'Add emergency contact'}
                       accessibilityRole="button"
                     >
                       <Text style={styles.emergencyButtonText}>
-                        📞 Call Emergency Contact
+                        {emergencyContact
+                          ? `📞 Call ${emergencyContact.name}`
+                          : '🌿 Add Support Person'}
                       </Text>
                     </TouchableOpacity>
                   </View>

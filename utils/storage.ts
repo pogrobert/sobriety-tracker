@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   SOBRIETY_DATE: '@sobriety_tracker:sobriety_date',
   URGE_LOGS: '@sobriety_tracker:urge_logs',
   JOURNAL_ENTRIES: '@sobriety_tracker:journal_entries',
+  EMERGENCY_CONTACT: '@sobriety_tracker:emergency_contact',
 } as const;
 
 // TypeScript types
@@ -19,6 +20,11 @@ export interface JournalEntry {
   id: string;
   timestamp: string;
   entry: string;
+}
+
+export interface EmergencyContact {
+  name: string;
+  phone: string;
 }
 
 /**
@@ -182,4 +188,65 @@ export async function getJournalEntries(): Promise<JournalEntry[]> {
  */
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Save emergency contact information
+ * @param contact The emergency contact with name and phone
+ */
+export async function saveEmergencyContact(
+  contact: EmergencyContact
+): Promise<void> {
+  try {
+    if (!contact.name || contact.name.trim().length === 0) {
+      throw new Error('Contact name cannot be empty');
+    }
+    if (!contact.phone || contact.phone.trim().length === 0) {
+      throw new Error('Contact phone cannot be empty');
+    }
+
+    const contactData = {
+      name: contact.name.trim(),
+      phone: contact.phone.trim(),
+    };
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.EMERGENCY_CONTACT,
+      JSON.stringify(contactData)
+    );
+  } catch (error) {
+    console.error('Error saving emergency contact:', error);
+    throw new Error('Failed to save emergency contact');
+  }
+}
+
+/**
+ * Get the emergency contact from storage
+ * @returns The emergency contact or null if not set
+ */
+export async function getEmergencyContact(): Promise<EmergencyContact | null> {
+  try {
+    const contactString = await AsyncStorage.getItem(
+      STORAGE_KEYS.EMERGENCY_CONTACT
+    );
+    if (!contactString) {
+      return null;
+    }
+    return JSON.parse(contactString);
+  } catch (error) {
+    console.error('Error getting emergency contact:', error);
+    throw new Error('Failed to retrieve emergency contact');
+  }
+}
+
+/**
+ * Remove the emergency contact from storage
+ */
+export async function clearEmergencyContact(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEYS.EMERGENCY_CONTACT);
+  } catch (error) {
+    console.error('Error clearing emergency contact:', error);
+    throw new Error('Failed to clear emergency contact');
+  }
 }
