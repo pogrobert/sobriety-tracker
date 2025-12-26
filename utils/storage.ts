@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   URGE_LOGS: '@sobriety_tracker:urge_logs',
   JOURNAL_ENTRIES: '@sobriety_tracker:journal_entries',
   EMERGENCY_CONTACT: '@sobriety_tracker:emergency_contact',
+  SHOWN_MILESTONES: '@sobriety_tracker:shown_milestones',
 } as const;
 
 // TypeScript types
@@ -271,5 +272,62 @@ export async function clearEmergencyContact(): Promise<void> {
   } catch (error) {
     console.error('Error clearing emergency contact:', error);
     throw new Error('Failed to clear emergency contact');
+  }
+}
+
+/**
+ * Get the list of shown milestones
+ * @returns Array of milestone days that have been shown
+ */
+export async function getShownMilestones(): Promise<number[]> {
+  try {
+    const milestonesString = await AsyncStorage.getItem(
+      STORAGE_KEYS.SHOWN_MILESTONES
+    );
+    if (!milestonesString) {
+      return [];
+    }
+    const milestones = JSON.parse(milestonesString);
+    return Array.isArray(milestones) ? milestones : [];
+  } catch (error) {
+    console.error('Error getting shown milestones:', error);
+    throw new Error('Failed to retrieve shown milestones');
+  }
+}
+
+/**
+ * Mark a milestone as shown
+ * @param days The milestone day to mark as shown
+ */
+export async function markMilestoneAsShown(days: number): Promise<void> {
+  try {
+    const shownMilestones = await getShownMilestones();
+
+    // Don't add duplicates
+    if (shownMilestones.includes(days)) {
+      return;
+    }
+
+    const updatedMilestones = [...shownMilestones, days];
+
+    await AsyncStorage.setItem(
+      STORAGE_KEYS.SHOWN_MILESTONES,
+      JSON.stringify(updatedMilestones)
+    );
+  } catch (error) {
+    console.error('Error marking milestone as shown:', error);
+    throw new Error('Failed to mark milestone as shown');
+  }
+}
+
+/**
+ * Reset shown milestones (useful for testing or reset)
+ */
+export async function resetShownMilestones(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(STORAGE_KEYS.SHOWN_MILESTONES);
+  } catch (error) {
+    console.error('Error resetting shown milestones:', error);
+    throw new Error('Failed to reset shown milestones');
   }
 }
