@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Pressable, Platform } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Platform, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import PlantAnimation from '@/components/PlantAnimation';
+import QuoteCard from '@/components/QuoteCard';
+import MilestoneCelebration from '@/components/MilestoneCelebration';
+import { getQuoteOfDay } from '@/utils/quotes';
 
 const SOBRIETY_DATE_KEY = '@sobriety_start_date';
 
@@ -124,127 +128,149 @@ export default function HomeScreen() {
     );
   }
 
+  // Get quote of the day
+  const quoteOfDay = getQuoteOfDay();
+
   // Main counter screen
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.counterContent}>
-        <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-          Your Journey
-        </Text>
-
-        <View style={styles.counterContainer}>
-          {/* Days */}
-          <View style={[
-            styles.counterCard,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 3,
-                },
-              }),
-            }
-          ]}>
-            <Text style={[styles.counterNumber, { color: colors.primary }]}>
-              {timeElapsed.days}
-            </Text>
-            <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>
-              {timeElapsed.days === 1 ? 'Day' : 'Days'}
-            </Text>
-          </View>
-
-          {/* Hours */}
-          <View style={[
-            styles.counterCard,
-            styles.smallerCard,
-            {
-              backgroundColor: colors.secondary,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 3,
-                },
-              }),
-            }
-          ]}>
-            <Text style={[styles.smallerNumber, { color: colors.text }]}>
-              {timeElapsed.hours}
-            </Text>
-            <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
-              {timeElapsed.hours === 1 ? 'Hour' : 'Hours'}
-            </Text>
-          </View>
-
-          {/* Minutes */}
-          <View style={[
-            styles.counterCard,
-            styles.smallerCard,
-            {
-              backgroundColor: colors.secondary,
-              borderColor: colors.border,
-              ...Platform.select({
-                ios: {
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                },
-                android: {
-                  elevation: 3,
-                },
-              }),
-            }
-          ]}>
-            <Text style={[styles.smallerNumber, { color: colors.text }]}>
-              {timeElapsed.minutes}
-            </Text>
-            <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
-              {timeElapsed.minutes === 1 ? 'Minute' : 'Minutes'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={[
-          styles.encouragementCard,
-          {
-            backgroundColor: colors.success,
-            ...Platform.select({
-              ios: {
-                shadowColor: colors.success,
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
-                shadowRadius: 8,
-              },
-              android: {
-                elevation: 3,
-              },
-            }),
-          }
-        ]}>
-          <Text style={[styles.encouragementText, { color: colors.textOnPrimary }]}>
-            {timeElapsed.days === 0 && timeElapsed.hours === 0
-              ? "You've started! Every moment counts."
-              : timeElapsed.days === 0
-              ? "Hour by hour, you're doing it!"
-              : timeElapsed.days === 1
-              ? "One full day! You're amazing!"
-              : `${timeElapsed.days} days strong! Keep going!`}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.counterContent}>
+          <Text style={[styles.headerText, { color: colors.textSecondary }]}>
+            Your Journey
           </Text>
+
+          {/* Plant Animation */}
+          <View style={styles.plantContainer}>
+            <PlantAnimation daysClean={timeElapsed.days} />
+          </View>
+
+          <View style={styles.counterContainer}>
+            {/* Days */}
+            <View style={[
+              styles.counterCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                ...Platform.select({
+                  ios: {
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                  },
+                  android: {
+                    elevation: 3,
+                  },
+                }),
+              }
+            ]}>
+              <Text style={[styles.counterNumber, { color: colors.primary }]}>
+                {timeElapsed.days}
+              </Text>
+              <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>
+                {timeElapsed.days === 1 ? 'Day' : 'Days'}
+              </Text>
+            </View>
+
+            {/* Hours */}
+            <View style={[
+              styles.counterCard,
+              styles.smallerCard,
+              {
+                backgroundColor: colors.secondary,
+                borderColor: colors.border,
+                ...Platform.select({
+                  ios: {
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                  },
+                  android: {
+                    elevation: 3,
+                  },
+                }),
+              }
+            ]}>
+              <Text style={[styles.smallerNumber, { color: colors.text }]}>
+                {timeElapsed.hours}
+              </Text>
+              <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
+                {timeElapsed.hours === 1 ? 'Hour' : 'Hours'}
+              </Text>
+            </View>
+
+            {/* Minutes */}
+            <View style={[
+              styles.counterCard,
+              styles.smallerCard,
+              {
+                backgroundColor: colors.secondary,
+                borderColor: colors.border,
+                ...Platform.select({
+                  ios: {
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                  },
+                  android: {
+                    elevation: 3,
+                  },
+                }),
+              }
+            ]}>
+              <Text style={[styles.smallerNumber, { color: colors.text }]}>
+                {timeElapsed.minutes}
+              </Text>
+              <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
+                {timeElapsed.minutes === 1 ? 'Minute' : 'Minutes'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[
+            styles.encouragementCard,
+            {
+              backgroundColor: colors.success,
+              ...Platform.select({
+                ios: {
+                  shadowColor: colors.success,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
+                },
+                android: {
+                  elevation: 3,
+                },
+              }),
+            }
+          ]}>
+            <Text style={[styles.encouragementText, { color: colors.textOnPrimary }]}>
+              {timeElapsed.days === 0 && timeElapsed.hours === 0
+                ? "You've started! Every moment counts."
+                : timeElapsed.days === 0
+                ? "Hour by hour, you're doing it!"
+                : timeElapsed.days === 1
+                ? "One full day! You're amazing!"
+                : `${timeElapsed.days} days strong! Keep going!`}
+            </Text>
+          </View>
+
+          {/* Quote of the Day */}
+          <View style={styles.quoteContainer}>
+            <QuoteCard quote={quoteOfDay} />
+          </View>
         </View>
-      </View>
+      </ScrollView>
+
+      {/* Milestone Celebration Modal */}
+      <MilestoneCelebration daysClean={timeElapsed.days} />
     </View>
   );
 }
@@ -252,9 +278,14 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     alignItems: 'center',
-    padding: Spacing.xl,
   },
   loadingText: {
     fontSize: Typography.sizes.lg,
@@ -305,10 +336,15 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.medium,
-    marginBottom: Spacing.xxl,
+    marginBottom: Spacing.lg,
     textAlign: 'center',
     letterSpacing: 1,
     textTransform: 'uppercase',
+  },
+  plantContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
   },
   counterContainer: {
     width: '100%',
@@ -359,5 +395,9 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weights.medium,
     textAlign: 'center',
     lineHeight: 28,
+  },
+  quoteContainer: {
+    width: '100%',
+    marginTop: Spacing.xl,
   },
 });
