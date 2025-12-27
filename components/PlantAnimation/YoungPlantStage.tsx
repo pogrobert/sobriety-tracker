@@ -1,25 +1,33 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
+import { getPlantColors } from './plantColors';
+import { ColorScheme } from '@/constants/theme';
 
-export const YoungPlantStage: React.FC = () => {
+interface YoungPlantStageProps {
+  colorScheme: ColorScheme;
+}
+
+export const YoungPlantStage: React.FC<YoungPlantStageProps> = ({ colorScheme }) => {
+  const colors = getPlantColors(colorScheme);
+
   return (
     <Svg width={200} height={200} viewBox="0 0 200 200">
       {/* Soil base */}
       <Path
         d="M 20 140 Q 100 130 180 140 L 180 180 L 20 180 Z"
-        fill="#D4A574"
+        fill={colors.soilLight}
       />
 
       {/* Darker soil layer */}
       <Path
         d="M 20 150 Q 100 145 180 150 L 180 180 L 20 180 Z"
-        fill="#C19A6B"
+        fill={colors.soilDark}
       />
 
       {/* Main stem */}
       <Path
         d="M 100 140 Q 98 100 100 70"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={4}
         fill="none"
         strokeLinecap="round"
@@ -31,12 +39,12 @@ export const YoungPlantStage: React.FC = () => {
         cy={115}
         rx={15}
         ry={20}
-        fill="#9BC4BC"
+        fill={colors.leafPrimary}
         transform="rotate(-40 80 115)"
       />
       <Path
         d="M 80 115 Q 75 110 72 105"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={1.5}
         fill="none"
         opacity={0.6}
@@ -48,12 +56,12 @@ export const YoungPlantStage: React.FC = () => {
         cy={115}
         rx={15}
         ry={20}
-        fill="#A8C5A6"
+        fill={colors.leafSecondary}
         transform="rotate(40 120 115)"
       />
       <Path
         d="M 120 115 Q 125 110 128 105"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={1.5}
         fill="none"
         opacity={0.6}
@@ -65,7 +73,7 @@ export const YoungPlantStage: React.FC = () => {
         cy={85}
         rx={12}
         ry={18}
-        fill="#7C9885"
+        fill={colors.leafTertiary}
         transform="rotate(-35 85 85)"
       />
 
@@ -75,7 +83,7 @@ export const YoungPlantStage: React.FC = () => {
         cy={85}
         rx={12}
         ry={18}
-        fill="#9BC4BC"
+        fill={colors.leafPrimary}
         transform="rotate(35 115 85)"
       />
 
@@ -85,13 +93,13 @@ export const YoungPlantStage: React.FC = () => {
         cy={65}
         rx={10}
         ry={15}
-        fill="#A8C5A6"
+        fill={colors.leafSecondary}
         transform="rotate(-5 100 65)"
       />
 
       {/* Small pebbles */}
-      <Circle cx={60} cy={160} r={3} fill="#C19A6B" opacity={0.5} />
-      <Circle cx={140} cy={165} r={2.5} fill="#C19A6B" opacity={0.5} />
+      <Circle cx={60} cy={160} r={3} fill={colors.pebble} opacity={0.5} />
+      <Circle cx={140} cy={165} r={2.5} fill={colors.pebble} opacity={0.5} />
     </Svg>
   );
 };

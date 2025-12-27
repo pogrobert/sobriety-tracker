@@ -13,7 +13,7 @@ import {
   Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme, useTheme } from '@/hooks/use-color-scheme';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
 import {
   getEmergencyContact,
@@ -25,15 +25,14 @@ import {
 } from '@/utils/storage';
 
 const STORAGE_KEYS = {
-  DARK_MODE: '@sobriety_tracker:dark_mode_preference',
   NOTIFICATIONS: '@sobriety_tracker:notifications_enabled',
 };
 
 const APP_VERSION = '1.0.0';
 
 export default function SettingsScreen() {
-  const systemColorScheme = useColorScheme() ?? 'light';
-  const [darkModePreference, setDarkModePreference] = useState<string | null>(null);
+  const colorScheme = useColorScheme();
+  const { themePreference, setThemePreference } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [emergencyContact, setEmergencyContact] = useState<EmergencyContact | null>(null);
 
@@ -45,10 +44,6 @@ export default function SettingsScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [keepData, setKeepData] = useState(true);
 
-  // Determine current color scheme based on preference
-  const colorScheme = darkModePreference === 'dark' ? 'dark' :
-                      darkModePreference === 'light' ? 'light' :
-                      systemColorScheme;
   const colors = Colors[colorScheme];
 
   useEffect(() => {
@@ -58,10 +53,7 @@ export default function SettingsScreen() {
 
   const loadSettings = async () => {
     try {
-      const darkMode = await AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE);
       const notifications = await AsyncStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-
-      setDarkModePreference(darkMode);
       setNotificationsEnabled(notifications === 'true');
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -84,8 +76,7 @@ export default function SettingsScreen() {
   const handleDarkModeToggle = async (value: boolean) => {
     try {
       const newValue = value ? 'dark' : 'light';
-      await AsyncStorage.setItem(STORAGE_KEYS.DARK_MODE, newValue);
-      setDarkModePreference(newValue);
+      await setThemePreference(newValue);
     } catch (error) {
       console.error('Error saving dark mode preference:', error);
       Alert.alert('Error', 'Failed to save dark mode preference');
@@ -259,7 +250,7 @@ export default function SettingsScreen() {
             'Dark Mode',
             'Use dark theme',
             <Switch
-              value={darkModePreference === 'dark'}
+              value={themePreference === 'dark'}
               onValueChange={handleDarkModeToggle}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={Platform.OS === 'android' ? colors.card : undefined}

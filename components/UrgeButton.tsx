@@ -13,6 +13,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeIn, FadeOut, SlideInDown } from 'react-native-reanimated';
 import { saveUrgeLog, type EmergencyContact } from '../utils/storage';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 
 interface UrgeButtonProps {
   /** Optional emergency contact */
@@ -25,6 +27,9 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
   emergencyContact,
   onUrgeLogged,
 }) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+
   const [modalVisible, setModalVisible] = useState(false);
   const [intensity, setIntensity] = useState(5);
   const [notes, setNotes] = useState('');
@@ -124,14 +129,14 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
     <>
       {/* Main Urge Button */}
       <TouchableOpacity
-        style={styles.urgeButton}
+        style={[styles.urgeButton, { backgroundColor: colors.accent }]}
         onPress={handleButtonPress}
         activeOpacity={0.8}
         accessibilityLabel="I'm struggling button"
         accessibilityHint="Opens dialog to log your struggle and get support"
         accessibilityRole="button"
       >
-        <Text style={styles.urgeButtonText}>I'm Struggling 😔</Text>
+        <Text style={[styles.urgeButtonText, { color: colors.textOnAccent }]}>I'm Struggling 😔</Text>
       </TouchableOpacity>
 
       {/* Modal */}
@@ -144,20 +149,20 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
         <Pressable style={styles.modalOverlay} onPress={handleCloseModal}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Animated.View
-              style={styles.modalContent}
+              style={[styles.modalContent, { backgroundColor: colors.card }]}
               entering={SlideInDown.duration(300)}
             >
               {!showSuccess ? (
                 <>
                   {/* Encouraging Header */}
-                  <Text style={styles.modalTitle}>You're Not Alone</Text>
-                  <Text style={styles.modalSubtitle}>
+                  <Text style={[styles.modalTitle, { color: colors.text }]}>You're Not Alone</Text>
+                  <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
                     It's okay to struggle. You're brave for acknowledging this.
                   </Text>
 
                   {/* Intensity Slider */}
                   <View style={styles.sliderSection}>
-                    <Text style={styles.sliderLabel}>
+                    <Text style={[styles.sliderLabel, { color: colors.text }]}>
                       How intense is this feeling?
                     </Text>
 
@@ -172,7 +177,7 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
                               backgroundColor:
                                 value <= intensity
                                   ? getIntensityColor(intensity)
-                                  : '#E8E8E8',
+                                  : colorScheme === 'dark' ? '#3A3A3A' : '#E8E8E8',
                             },
                             value === intensity && styles.sliderDotActive,
                           ]}
@@ -188,23 +193,23 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
 
                     {/* Intensity Labels */}
                     <View style={styles.sliderLabels}>
-                      <Text style={styles.sliderLabelText}>Mild</Text>
-                      <Text style={[styles.sliderLabelText, styles.intensityValue]}>
+                      <Text style={[styles.sliderLabelText, { color: colors.textSecondary }]}>Mild</Text>
+                      <Text style={[styles.sliderLabelText, styles.intensityValue, { color: colors.accent }]}>
                         {intensity}
                       </Text>
-                      <Text style={styles.sliderLabelText}>Intense</Text>
+                      <Text style={[styles.sliderLabelText, { color: colors.textSecondary }]}>Intense</Text>
                     </View>
                   </View>
 
                   {/* Optional Notes */}
                   <View style={styles.notesSection}>
-                    <Text style={styles.notesLabel}>
+                    <Text style={[styles.notesLabel, { color: colors.text }]}>
                       What's on your mind? (optional)
                     </Text>
                     <TextInput
-                      style={styles.notesInput}
+                      style={[styles.notesInput, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
                       placeholder="Describe what you're feeling..."
-                      placeholderTextColor="#9A9A9A"
+                      placeholderTextColor={colors.textTertiary}
                       multiline
                       numberOfLines={4}
                       textAlignVertical="top"
@@ -217,24 +222,24 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
                   {/* Action Buttons */}
                   <View style={styles.actionButtons}>
                     <TouchableOpacity
-                      style={[styles.actionButton, styles.primaryButton]}
+                      style={[styles.actionButton, styles.primaryButton, { backgroundColor: colors.primary }]}
                       onPress={handleLogUrge}
                       disabled={isSaving}
                       accessibilityLabel="Log and continue"
                       accessibilityRole="button"
                     >
-                      <Text style={styles.primaryButtonText}>
+                      <Text style={[styles.primaryButtonText, { color: colors.textOnPrimary }]}>
                         {isSaving ? 'Saving...' : 'Log & Continue'}
                       </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      style={[styles.actionButton, styles.emergencyButton]}
+                      style={[styles.actionButton, styles.emergencyButton, { backgroundColor: colors.card, borderColor: colors.accent }]}
                       onPress={handleCallEmergencyContact}
                       accessibilityLabel={emergencyContact ? `Call ${emergencyContact.name}` : 'Add emergency contact'}
                       accessibilityRole="button"
                     >
-                      <Text style={styles.emergencyButtonText}>
+                      <Text style={[styles.emergencyButtonText, { color: colors.accent }]}>
                         {emergencyContact
                           ? `📞 Call ${emergencyContact.name}`
                           : '🌿 Add Support Person'}
@@ -249,7 +254,7 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
                     accessibilityLabel="Close dialog"
                     accessibilityRole="button"
                   >
-                    <Text style={styles.closeButtonText}>Cancel</Text>
+                    <Text style={[styles.closeButtonText, { color: colors.textSecondary }]}>Cancel</Text>
                   </TouchableOpacity>
                 </>
               ) : (
@@ -259,8 +264,8 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
                   style={styles.successContainer}
                 >
                   <Text style={styles.successEmoji}>💚</Text>
-                  <Text style={styles.successTitle}>You Did It!</Text>
-                  <Text style={styles.successMessage}>
+                  <Text style={[styles.successTitle, { color: colors.primary }]}>You Did It!</Text>
+                  <Text style={[styles.successMessage, { color: colors.textSecondary }]}>
                     Logging your struggle is a sign of strength. Take it one moment
                     at a time. You're doing great.
                   </Text>
@@ -276,7 +281,6 @@ export const UrgeButton: React.FC<UrgeButtonProps> = ({
 
 const styles = StyleSheet.create({
   urgeButton: {
-    backgroundColor: '#D4A574',
     paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 16,
@@ -295,7 +299,6 @@ const styles = StyleSheet.create({
   urgeButtonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
   modalOverlay: {
@@ -304,7 +307,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -314,13 +316,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#3A3A3A',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 16,
-    color: '#6B6B6B',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 32,
@@ -331,7 +331,6 @@ const styles = StyleSheet.create({
   sliderLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3A3A3A',
     marginBottom: 16,
   },
   sliderContainer: {
@@ -344,7 +343,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#E8E8E8',
   },
   sliderDotActive: {
     transform: [{ scale: 1.3 }],
@@ -364,12 +362,10 @@ const styles = StyleSheet.create({
   },
   sliderLabelText: {
     fontSize: 14,
-    color: '#6B6B6B',
   },
   intensityValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#D4A574',
   },
   notesSection: {
     marginBottom: 24,
@@ -377,18 +373,14 @@ const styles = StyleSheet.create({
   notesLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3A3A3A',
     marginBottom: 12,
   },
   notesInput: {
-    backgroundColor: '#F5F3EE',
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#3A3A3A',
     minHeight: 100,
     borderWidth: 1,
-    borderColor: '#E8DCC4',
   },
   actionButtons: {
     gap: 12,
@@ -401,22 +393,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButton: {
-    backgroundColor: '#7C9885',
   },
   primaryButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   emergencyButton: {
-    backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#D4A574',
   },
   emergencyButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#D4A574',
   },
   closeButton: {
     paddingVertical: 12,
@@ -424,7 +411,6 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
-    color: '#6B6B6B',
   },
   successContainer: {
     alignItems: 'center',
@@ -438,13 +424,11 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#7C9885',
     marginBottom: 16,
     textAlign: 'center',
   },
   successMessage: {
     fontSize: 16,
-    color: '#6B6B6B',
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 16,

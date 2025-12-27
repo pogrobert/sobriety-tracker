@@ -38,7 +38,7 @@ export const Colors = {
     textOnAccent: '#FFFFFF',
   },
   dark: {
-    primary: '#7C9885',      // sage green
+    primary: '#9BC4BC',      // adjusted for dark - soft teal
     secondary: '#3A3632',    // dark warm tone
     accent: '#D4A574',       // soft terracotta
     text: '#E8E8E8',         // light gray
@@ -46,11 +46,11 @@ export const Colors = {
     success: '#9BC4BC',      // soft teal
 
     // UI colors
-    tint: '#7C9885',
+    tint: '#9BC4BC',
     icon: '#B0B0B0',
     tabIconDefault: '#B0B0B0',
-    tabIconSelected: '#7C9885',
-    card: '#2A2A2A',
+    tabIconSelected: '#9BC4BC',
+    card: '#2A2A2A',         // surface color
     border: '#3A3A3A',
     notification: '#D4A574',
     error: '#E67E73',
@@ -58,7 +58,7 @@ export const Colors = {
     // Text variations
     textSecondary: '#B0B0B0',
     textTertiary: '#808080',
-    textOnPrimary: '#FFFFFF',
+    textOnPrimary: '#1A1A1A',
     textOnAccent: '#1A1A1A',
   },
 };
