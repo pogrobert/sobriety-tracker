@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Pressable, Platform, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Pressable, Platform, ScrollView, RefreshControl, ActivityIndicator, Animated } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import PlantAnimation from '@/components/PlantAnimation';
@@ -23,6 +25,10 @@ export default function HomeScreen() {
   const [sobrietyDate, setSobrietyDate] = useState<Date | null>(null);
   const [timeElapsed, setTimeElapsed] = useState<TimeRemaining>({ days: 0, hours: 0, minutes: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   // Load sobriety date from AsyncStorage
   useEffect(() => {
@@ -50,81 +56,143 @@ export default function HomeScreen() {
     return () => clearInterval(interval);
   }, [sobrietyDate]);
 
-  const loadSobrietyDate = async () => {
+  const loadSobrietyDate = async (isRefresh = false) => {
     try {
+      setError(null);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      }
+
       const dateString = await AsyncStorage.getItem(SOBRIETY_DATE_KEY);
       if (dateString) {
         setSobrietyDate(new Date(dateString));
       }
-    } catch (error) {
-      console.error('Error loading sobriety date:', error);
+
+      // Fade in animation after loading
+      if (!isRefresh) {
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }).start();
+      }
+    } catch (err) {
+      console.error('Error loading sobriety date:', err);
+      setError('Unable to load your data. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    await loadSobrietyDate(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handleStartJourney = async () => {
     try {
+      setIsSaving(true);
+      setError(null);
+
+      // Haptic feedback on press
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       const now = new Date();
       await AsyncStorage.setItem(SOBRIETY_DATE_KEY, now.toISOString());
       setSobrietyDate(now);
-    } catch (error) {
-      console.error('Error saving sobriety date:', error);
+
+      // Success haptic feedback
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      // Fade in the main content
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    } catch (err) {
+      console.error('Error saving sobriety date:', err);
+      setError('Unable to start your journey. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Loading...
-        </Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
+            Loading...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   // Onboarding screen - shown when no sobriety date is set
   if (!sobrietyDate) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.onboardingContent}>
-          <Text style={[styles.onboardingEmoji]}>🌱</Text>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+        <View style={styles.centerContent}>
+          <View style={styles.onboardingContent}>
+            <Text style={[styles.onboardingEmoji]}>🌱</Text>
 
-          <Text style={[styles.onboardingTitle, { color: colors.text }]}>
-            Ready to start{'\n'}your journey?
-          </Text>
-
-          <Text style={[styles.onboardingSubtitle, { color: colors.textSecondary }]}>
-            Every journey begins with a single step.{'\n'}Today can be that day.
-          </Text>
-
-          <Pressable
-            onPress={handleStartJourney}
-            style={({ pressed }) => [
-              styles.beginButton,
-              {
-                backgroundColor: colors.primary,
-                opacity: pressed ? 0.8 : 1,
-                ...Platform.select({
-                  ios: {
-                    shadowColor: colors.primary,
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                  },
-                  android: {
-                    elevation: 6,
-                  },
-                }),
-              },
-            ]}
-          >
-            <Text style={[styles.beginButtonText, { color: colors.textOnPrimary }]}>
-              Begin Today
+            <Text style={[styles.onboardingTitle, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
+              Ready to start{'\n'}your journey?
             </Text>
-          </Pressable>
+
+            <Text style={[styles.onboardingSubtitle, { color: colors.textSecondary, fontFamily: Typography.fonts.regular }]}>
+              Every journey begins with a single step.{'\n'}Today can be that day.
+            </Text>
+
+            {error && (
+              <View style={[styles.errorContainer, { backgroundColor: colors.error + '20', borderColor: colors.error }]}>
+                <Text style={[styles.errorText, { color: colors.error, fontFamily: Typography.fonts.medium }]}>
+                  {error}
+                </Text>
+              </View>
+            )}
+
+            <Pressable
+              onPress={handleStartJourney}
+              disabled={isSaving}
+              onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+              style={({ pressed }) => [
+                styles.beginButton,
+                {
+                  backgroundColor: colors.primary,
+                  opacity: isSaving ? 0.6 : pressed ? 0.8 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                  ...Platform.select({
+                    ios: {
+                      shadowColor: colors.primary,
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                    },
+                    android: {
+                      elevation: 6,
+                    },
+                  }),
+                },
+              ]}
+            >
+              {isSaving ? (
+                <ActivityIndicator color={colors.textOnPrimary} />
+              ) : (
+                <Text style={[styles.beginButtonText, { color: colors.textOnPrimary, fontFamily: Typography.fonts.semibold }]}>
+                  Begin Today
+                </Text>
+              )}
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -133,16 +201,33 @@ export default function HomeScreen() {
 
   // Main counter screen
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.counterContent}>
-          <Text style={[styles.headerText, { color: colors.textSecondary }]}>
-            Your Journey
-          </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+        {error && (
+          <View style={[styles.errorBanner, { backgroundColor: colors.error + '20', borderColor: colors.error }]}>
+            <Text style={[styles.errorText, { color: colors.error, fontFamily: Typography.fonts.medium }]}>
+              {error}
+            </Text>
+          </View>
+        )}
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        >
+          <View style={styles.counterContent}>
+            <Text style={[styles.headerText, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
+              Your Journey
+            </Text>
 
           {/* Plant Animation */}
           <View style={styles.plantContainer}>
@@ -169,10 +254,10 @@ export default function HomeScreen() {
                 }),
               }
             ]}>
-              <Text style={[styles.counterNumber, { color: colors.primary }]}>
+              <Text style={[styles.counterNumber, { color: colors.primary, fontFamily: Typography.fonts.bold }]}>
                 {timeElapsed.days}
               </Text>
-              <Text style={[styles.counterLabel, { color: colors.textSecondary }]}>
+              <Text style={[styles.counterLabel, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
                 {timeElapsed.days === 1 ? 'Day' : 'Days'}
               </Text>
             </View>
@@ -197,10 +282,10 @@ export default function HomeScreen() {
                 }),
               }
             ]}>
-              <Text style={[styles.smallerNumber, { color: colors.text }]}>
+              <Text style={[styles.smallerNumber, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
                 {timeElapsed.hours}
               </Text>
-              <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
+              <Text style={[styles.smallerLabel, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
                 {timeElapsed.hours === 1 ? 'Hour' : 'Hours'}
               </Text>
             </View>
@@ -225,10 +310,10 @@ export default function HomeScreen() {
                 }),
               }
             ]}>
-              <Text style={[styles.smallerNumber, { color: colors.text }]}>
+              <Text style={[styles.smallerNumber, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
                 {timeElapsed.minutes}
               </Text>
-              <Text style={[styles.smallerLabel, { color: colors.textSecondary }]}>
+              <Text style={[styles.smallerLabel, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
                 {timeElapsed.minutes === 1 ? 'Minute' : 'Minutes'}
               </Text>
             </View>
@@ -251,7 +336,7 @@ export default function HomeScreen() {
               }),
             }
           ]}>
-            <Text style={[styles.encouragementText, { color: colors.textOnPrimary }]}>
+            <Text style={[styles.encouragementText, { color: colors.textOnPrimary, fontFamily: Typography.fonts.medium }]}>
               {timeElapsed.days === 0 && timeElapsed.hours === 0
                 ? "You've started! Every moment counts."
                 : timeElapsed.days === 0
@@ -271,7 +356,8 @@ export default function HomeScreen() {
 
       {/* Milestone Celebration Modal */}
       <MilestoneCelebration daysClean={timeElapsed.days} />
-    </View>
+    </Animated.View>
+    </SafeAreaView>
   );
 }
 
@@ -290,6 +376,30 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.medium,
+    marginTop: Spacing.lg,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  errorBanner: {
+    margin: Spacing.lg,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  errorContainer: {
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    width: '100%',
+  },
+  errorText: {
+    fontSize: Typography.sizes.sm,
+    textAlign: 'center',
   },
 
   // Onboarding styles
