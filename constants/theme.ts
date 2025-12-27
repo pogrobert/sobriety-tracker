@@ -96,6 +96,12 @@ export const Typography = {
     semibold: '600' as const,
     bold: '700' as const,
   },
+  fonts: {
+    regular: 'Nunito-Regular',
+    medium: 'Nunito-Medium',
+    semibold: 'Nunito-SemiBold',
+    bold: 'Nunito-Bold',
+  },
 };
 
 export const Fonts = Platform.select({

@@ -10,7 +10,11 @@ import {
   Pressable,
   Alert,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
 import {
@@ -35,6 +39,8 @@ export default function JournalScreen() {
 
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [newEntryText, setNewEntryText] = useState('');
   const [currentPrompt, setCurrentPrompt] = useState('');
@@ -46,19 +52,32 @@ export default function JournalScreen() {
     setCurrentPrompt(PROMPTS[Math.floor(Math.random() * PROMPTS.length)]);
   }, []);
 
-  const loadEntries = async () => {
+  const loadEntries = async (isRefresh = false) => {
     try {
+      setError(null);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      }
+
       const loadedEntries = await getJournalEntries();
       setEntries(loadedEntries);
-    } catch (error) {
-      console.error('Error loading journal entries:', error);
-      Alert.alert('Error', 'Failed to load journal entries');
+    } catch (err) {
+      console.error('Error loading journal entries:', err);
+      setError('Unable to load journal entries');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
+  const onRefresh = async () => {
+    await loadEntries(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   const handleOpenModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setModalVisible(true);
     // Set a new random prompt each time modal opens
     setCurrentPrompt(PROMPTS[Math.floor(Math.random() * PROMPTS.length)]);
@@ -72,17 +91,23 @@ export default function JournalScreen() {
   const handleSaveEntry = async () => {
     if (!newEntryText.trim()) {
       Alert.alert('Empty Entry', 'Please write something before saving.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 
     try {
       setIsSaving(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       await saveJournalEntry(newEntryText);
       await loadEntries();
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       handleCloseModal();
-    } catch (error) {
-      console.error('Error saving journal entry:', error);
-      Alert.alert('Error', 'Failed to save journal entry');
+    } catch (err) {
+      console.error('Error saving journal entry:', err);
+      Alert.alert('Error', 'Failed to save journal entry. Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSaving(false);
     }
@@ -168,21 +193,22 @@ export default function JournalScreen() {
       ]}
     >
       <View style={styles.entryHeader}>
-        <Text style={[styles.entryDate, { color: colors.textSecondary }]}>
+        <Text style={[styles.entryDate, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
           {formatDate(item.timestamp)}
         </Text>
         <TouchableOpacity
           onPress={() => handleDeleteEntry(item)}
+          onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
           style={styles.deleteButton}
           accessibilityLabel="Delete entry"
           accessibilityRole="button"
         >
-          <Text style={[styles.deleteButtonText, { color: colors.error }]}>
+          <Text style={[styles.deleteButtonText, { color: colors.error, fontFamily: Typography.fonts.medium }]}>
             Delete
           </Text>
         </TouchableOpacity>
       </View>
-      <Text style={[styles.entryText, { color: colors.text }]}>
+      <Text style={[styles.entryText, { color: colors.text, fontFamily: Typography.fonts.regular }]}>
         {item.entry}
       </Text>
     </View>
@@ -191,10 +217,10 @@ export default function JournalScreen() {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyEmoji}>📖</Text>
-      <Text style={[styles.emptyTitle, { color: colors.text }]}>
+      <Text style={[styles.emptyTitle, { color: colors.text, fontFamily: Typography.fonts.semibold }]}>
         Your reflections will appear here
       </Text>
-      <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+      <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontFamily: Typography.fonts.regular }]}>
         Start your journaling journey by adding your first entry
       </Text>
     </View>
@@ -202,25 +228,36 @@ export default function JournalScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          Loading...
-        </Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
+            Loading...
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
+        <Text style={[styles.headerTitle, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
           Daily Reflections
         </Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+        <Text style={[styles.headerSubtitle, { color: colors.textSecondary, fontFamily: Typography.fonts.regular }]}>
           A space for your thoughts and gratitude
         </Text>
       </View>
+
+      {error && (
+        <View style={[styles.errorBanner, { backgroundColor: colors.error + '20', borderColor: colors.error }]}>
+          <Text style={[styles.errorText, { color: colors.error, fontFamily: Typography.fonts.medium }]}>
+            {error}
+          </Text>
+        </View>
+      )}
 
       {/* Journal Entries List */}
       <FlatList
@@ -233,14 +270,24 @@ export default function JournalScreen() {
         ]}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       />
 
       {/* New Entry Button */}
-      <TouchableOpacity
-        style={[
+      <Pressable
+        style={({ pressed }) => [
           styles.newEntryButton,
           {
             backgroundColor: colors.primary,
+            opacity: pressed ? 0.8 : 1,
+            transform: [{ scale: pressed ? 0.98 : 1 }],
             ...Platform.select({
               ios: {
                 shadowColor: colors.primary,
@@ -255,14 +302,14 @@ export default function JournalScreen() {
           },
         ]}
         onPress={handleOpenModal}
-        activeOpacity={0.8}
+        onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
         accessibilityLabel="Create new journal entry"
         accessibilityRole="button"
       >
-        <Text style={[styles.newEntryButtonText, { color: colors.textOnPrimary }]}>
+        <Text style={[styles.newEntryButtonText, { color: colors.textOnPrimary, fontFamily: Typography.fonts.semibold }]}>
           + New Entry
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* New Entry Modal */}
       <Modal
@@ -277,11 +324,12 @@ export default function JournalScreen() {
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
+              <Text style={[styles.modalTitle, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
                 New Entry
               </Text>
               <TouchableOpacity
                 onPress={handleCloseModal}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 style={styles.modalCloseButton}
                 accessibilityLabel="Close"
                 accessibilityRole="button"
@@ -292,7 +340,7 @@ export default function JournalScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.promptText, { color: colors.textSecondary }]}>
+            <Text style={[styles.promptText, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
               {currentPrompt}
             </Text>
 
@@ -303,6 +351,7 @@ export default function JournalScreen() {
                   backgroundColor: colors.background,
                   borderColor: colors.border,
                   color: colors.text,
+                  fontFamily: Typography.fonts.regular,
                 },
               ]}
               placeholder="Write your thoughts here..."
@@ -317,42 +366,52 @@ export default function JournalScreen() {
             />
 
             <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[
+              <Pressable
+                style={({ pressed }) => [
                   styles.saveButton,
                   {
                     backgroundColor: colors.primary,
-                    opacity: isSaving ? 0.6 : 1,
+                    opacity: isSaving ? 0.6 : pressed ? 0.8 : 1,
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
                   },
                 ]}
                 onPress={handleSaveEntry}
+                onPressIn={() => !isSaving && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 disabled={isSaving}
                 accessibilityLabel="Save entry"
                 accessibilityRole="button"
               >
-                <Text style={[styles.saveButtonText, { color: colors.textOnPrimary }]}>
-                  {isSaving ? 'Saving...' : 'Save Entry'}
-                </Text>
-              </TouchableOpacity>
+                {isSaving ? (
+                  <ActivityIndicator color={colors.textOnPrimary} />
+                ) : (
+                  <Text style={[styles.saveButtonText, { color: colors.textOnPrimary, fontFamily: Typography.fonts.semibold }]}>
+                    Save Entry
+                  </Text>
+                )}
+              </Pressable>
 
-              <TouchableOpacity
-                style={[
+              <Pressable
+                style={({ pressed }) => [
                   styles.cancelButton,
-                  { borderColor: colors.border },
+                  {
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.6 : 1,
+                  },
                 ]}
                 onPress={handleCloseModal}
+                onPressIn={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
                 accessibilityLabel="Cancel"
                 accessibilityRole="button"
               >
-                <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>
+                <Text style={[styles.cancelButtonText, { color: colors.textSecondary, fontFamily: Typography.fonts.medium }]}>
                   Cancel
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -364,7 +423,24 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.medium,
     textAlign: 'center',
-    marginTop: Spacing.xxl,
+    marginTop: Spacing.lg,
+  },
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
+  },
+  errorBanner: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+  },
+  errorText: {
+    fontSize: Typography.sizes.sm,
+    textAlign: 'center',
   },
   header: {
     padding: Spacing.xl,

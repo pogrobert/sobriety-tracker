@@ -11,7 +11,10 @@ import {
   Alert,
   Platform,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme, useTheme } from '@/hooks/use-color-scheme';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
@@ -75,25 +78,30 @@ export default function SettingsScreen() {
 
   const handleDarkModeToggle = async (value: boolean) => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const newValue = value ? 'dark' : 'light';
       await setThemePreference(newValue);
     } catch (error) {
       console.error('Error saving dark mode preference:', error);
       Alert.alert('Error', 'Failed to save dark mode preference');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
   const handleNotificationsToggle = async (value: boolean) => {
     try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       await AsyncStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, value.toString());
       setNotificationsEnabled(value);
     } catch (error) {
       console.error('Error saving notification preference:', error);
       Alert.alert('Error', 'Failed to save notification preference');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
   const handleOpenContactModal = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     if (emergencyContact) {
       setContactName(emergencyContact.name);
       setContactPhone(emergencyContact.phone);
@@ -107,21 +115,27 @@ export default function SettingsScreen() {
   const handleSaveContact = async () => {
     if (!contactName.trim() || !contactPhone.trim()) {
       Alert.alert('Missing Information', 'Please enter both name and phone number.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       return;
     }
 
     try {
       setIsSaving(true);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       await saveEmergencyContact({
         name: contactName.trim(),
         phone: contactPhone.trim(),
       });
       await loadEmergencyContact();
+
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setContactModalVisible(false);
       Alert.alert('Success', 'Emergency contact saved successfully.');
     } catch (error) {
       console.error('Error saving emergency contact:', error);
       Alert.alert('Error', 'Failed to save emergency contact');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSaving(false);
     }
@@ -154,15 +168,19 @@ export default function SettingsScreen() {
 
   const handleCallEmergencyContact = () => {
     if (emergencyContact) {
-      const phoneNumber = \`tel:\${emergencyContact.phone.replace(/[^0-9+]/g, '')}\`;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      const phoneNumber = `tel:${emergencyContact.phone.replace(/[^0-9+]/g, '')}`;
       Linking.openURL(phoneNumber).catch(() => {
         Alert.alert('Error', 'Unable to make phone call');
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       });
     }
   };
 
   const handleResetCounter = async () => {
     try {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+
       if (keepData) {
         // Only reset sobriety date and milestones, keep journal and urge logs
         await resetSobrietyDate();
@@ -188,6 +206,7 @@ export default function SettingsScreen() {
     } catch (error) {
       console.error('Error resetting counter:', error);
       Alert.alert('Error', 'Failed to reset counter');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
 
@@ -204,17 +223,19 @@ export default function SettingsScreen() {
           backgroundColor: colors.card,
           borderColor: colors.border,
           opacity: pressed && onPress ? 0.7 : 1,
+          transform: [{ scale: pressed && onPress ? 0.99 : 1 }],
         },
       ]}
       onPress={onPress}
+      onPressIn={() => onPress && Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
       disabled={!onPress}
     >
       <View style={styles.settingItemLeft}>
-        <Text style={[styles.settingTitle, { color: colors.text }]}>
+        <Text style={[styles.settingTitle, { color: colors.text, fontFamily: Typography.fonts.semibold }]}>
           {title}
         </Text>
         {subtitle && (
-          <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.settingSubtitle, { color: colors.textSecondary, fontFamily: Typography.fonts.regular }]}>
             {subtitle}
           </Text>
         )}
@@ -228,7 +249,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -236,14 +257,14 @@ export default function SettingsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
+          <Text style={[styles.headerTitle, { color: colors.text, fontFamily: Typography.fonts.bold }]}>
             Settings
           </Text>
         </View>
 
         {/* Appearance Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary, fontFamily: Typography.fonts.semibold }]}>
             APPEARANCE
           </Text>
           {renderSettingItem(
@@ -549,7 +570,7 @@ export default function SettingsScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
