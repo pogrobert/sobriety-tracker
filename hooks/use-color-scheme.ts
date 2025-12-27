@@ -1,2 +1,2 @@
-// Export theme hooks from ThemeContext
-export { useColorScheme, useTheme } from '@/contexts/ThemeContext';
+// Export theme hooks and provider from ThemeContext
+export { useColorScheme, useTheme, ThemeProvider } from '@/contexts/ThemeContext';
