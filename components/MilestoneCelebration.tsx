@@ -213,7 +213,7 @@ const ConfettiParticle: React.FC<{ delay: number }> = ({ delay }) => {
     );
     translateX.value = withDelay(
       delay,
-      withTiming(randomX, { duration, easing: Easing.inOut(Easing.sine) })
+      withTiming(randomX, { duration, easing: Easing.inOut(Easing.sin) })
     );
     rotation.value = withDelay(
       delay,
@@ -236,9 +236,9 @@ const ConfettiParticle: React.FC<{ delay: number }> = ({ delay }) => {
     transform: [
       { translateY: translateY.value },
       { translateX: translateX.value },
-      { rotate: `${rotation.value}deg` },
+      { rotate: `${rotation.value}deg` as string },
       { scale: scale.value },
-    ],
+    ] as any,
   }));
 
   const colors = ['#9BC4BC', '#7C9885', '#D4A574', '#E8DCC4'];

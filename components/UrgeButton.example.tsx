@@ -36,7 +36,7 @@ export default function UrgeButtonExample() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>With Emergency Contact:</Text>
           <UrgeButton
-            emergencyContact="+1-555-123-4567"
+            emergencyContact={{ name: "Support Person", phone: "+1-555-123-4567" }}
             onUrgeLogged={handleUrgeLogged}
           />
         </View>

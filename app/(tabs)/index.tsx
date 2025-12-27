@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, BorderRadius, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import PlantAnimation from '@/components/PlantAnimation';
-import QuoteCard from '@/components/QuoteCard';
-import MilestoneCelebration from '@/components/MilestoneCelebration';
+import { PlantAnimation } from '@/components/PlantAnimation';
+import { QuoteCard } from '@/components/QuoteCard';
+import { MilestoneCelebration } from '@/components/MilestoneCelebration';
 import { getQuoteOfDay } from '@/utils/quotes';
 
 const SOBRIETY_DATE_KEY = '@sobriety_start_date';
