@@ -22,6 +22,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path, Rect, Ellipse } from 'react-native-svg';
 import { getShownMilestones, markMilestoneAsShown } from '../utils/storage';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,6 +49,9 @@ export const MilestoneCelebration: React.FC<MilestoneCelebrationProps> = ({
   daysClean,
   onCelebrationShown,
 }) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+
   const [visible, setVisible] = useState(false);
   const [currentMilestone, setCurrentMilestone] = useState<typeof MILESTONES[0] | null>(null);
   const [shownMilestones, setShownMilestones] = useState<number[]>([]);
@@ -151,7 +156,7 @@ export const MilestoneCelebration: React.FC<MilestoneCelebrationProps> = ({
         {/* Main celebration card */}
         <Animated.View
           entering={ZoomIn.duration(500).easing(Easing.out(Easing.cubic))}
-          style={styles.celebrationCard}
+          style={[styles.celebrationCard, { backgroundColor: colors.card }]}
         >
           {/* Plant illustration */}
           <View style={styles.illustrationContainer}>
@@ -161,7 +166,7 @@ export const MilestoneCelebration: React.FC<MilestoneCelebrationProps> = ({
           {/* Title */}
           <Animated.Text
             entering={FadeIn.delay(300)}
-            style={styles.title}
+            style={[styles.title, { color: colors.primary }]}
           >
             {currentMilestone.title}
           </Animated.Text>
@@ -169,7 +174,7 @@ export const MilestoneCelebration: React.FC<MilestoneCelebrationProps> = ({
           {/* Message */}
           <Animated.Text
             entering={FadeIn.delay(500)}
-            style={styles.message}
+            style={[styles.message, { color: colors.textSecondary }]}
           >
             {currentMilestone.message}
           </Animated.Text>
@@ -177,11 +182,11 @@ export const MilestoneCelebration: React.FC<MilestoneCelebrationProps> = ({
           {/* Dismiss button */}
           <Animated.View entering={FadeIn.delay(700)}>
             <TouchableOpacity
-              style={styles.dismissButton}
+              style={[styles.dismissButton, { backgroundColor: colors.primary }]}
               onPress={handleDismiss}
               activeOpacity={0.8}
             >
-              <Text style={styles.dismissButtonText}>Keep Growing 🌱</Text>
+              <Text style={[styles.dismissButtonText, { color: colors.textOnPrimary }]}>Keep Growing 🌱</Text>
             </TouchableOpacity>
           </Animated.View>
         </Animated.View>
@@ -390,7 +395,6 @@ const styles = StyleSheet.create({
     top: 0,
   },
   celebrationCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 32,
     marginHorizontal: 24,
@@ -411,19 +415,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#9BC4BC',
     textAlign: 'center',
     marginBottom: 16,
   },
   message: {
     fontSize: 18,
-    color: '#6B6B6B',
     textAlign: 'center',
     lineHeight: 26,
     marginBottom: 32,
   },
   dismissButton: {
-    backgroundColor: '#9BC4BC',
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 16,
@@ -439,7 +440,6 @@ const styles = StyleSheet.create({
   dismissButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#FFFFFF',
     textAlign: 'center',
   },
 });

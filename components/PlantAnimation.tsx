@@ -10,6 +10,7 @@ import Animated, {
   FadeIn,
   FadeOut,
 } from 'react-native-reanimated';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SeedStage } from './PlantAnimation/SeedStage';
 import { SproutStage } from './PlantAnimation/SproutStage';
 import { YoungPlantStage } from './PlantAnimation/YoungPlantStage';
@@ -21,9 +22,15 @@ interface PlantAnimationProps {
   daysClean: number;
 }
 
+interface PlantStageProps {
+  colorScheme: 'light' | 'dark';
+}
+
 const MILESTONE_DAYS = [7, 14, 30, 90];
 
 export const PlantAnimation: React.FC<PlantAnimationProps> = ({ daysClean }) => {
+  const colorScheme = useColorScheme();
+
   // Breathing animation scale value
   const breatheScale = useSharedValue(1);
 
@@ -134,7 +141,7 @@ export const PlantAnimation: React.FC<PlantAnimationProps> = ({ daysClean }) => 
         exiting={FadeOut.duration(600).easing(Easing.inOut(Easing.ease))}
         style={breatheStyle}
       >
-        <PlantComponent />
+        <PlantComponent colorScheme={colorScheme} />
       </Animated.View>
     </View>
   );

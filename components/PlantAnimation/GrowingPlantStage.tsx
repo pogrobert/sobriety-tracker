@@ -1,25 +1,33 @@
 import React from 'react';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
+import { getPlantColors } from './plantColors';
+import { ColorScheme } from '@/constants/theme';
 
-export const GrowingPlantStage: React.FC = () => {
+interface GrowingPlantStageProps {
+  colorScheme: ColorScheme;
+}
+
+export const GrowingPlantStage: React.FC<GrowingPlantStageProps> = ({ colorScheme }) => {
+  const colors = getPlantColors(colorScheme);
+
   return (
     <Svg width={200} height={200} viewBox="0 0 200 200">
       {/* Soil base */}
       <Path
         d="M 20 145 Q 100 135 180 145 L 180 180 L 20 180 Z"
-        fill="#D4A574"
+        fill={colors.soilLight}
       />
 
       {/* Darker soil layer */}
       <Path
         d="M 20 155 Q 100 150 180 155 L 180 180 L 20 180 Z"
-        fill="#C19A6B"
+        fill={colors.soilDark}
       />
 
       {/* Main stem - thicker and taller */}
       <Path
         d="M 100 145 Q 98 90 100 50"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={5}
         fill="none"
         strokeLinecap="round"
@@ -31,12 +39,12 @@ export const GrowingPlantStage: React.FC = () => {
         cy={125}
         rx={18}
         ry={24}
-        fill="#9BC4BC"
+        fill={colors.leafPrimary}
         transform="rotate(-45 70 125)"
       />
       <Path
         d="M 70 125 Q 65 118 60 112"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={2}
         fill="none"
         opacity={0.5}
@@ -48,12 +56,12 @@ export const GrowingPlantStage: React.FC = () => {
         cy={125}
         rx={18}
         ry={24}
-        fill="#A8C5A6"
+        fill={colors.leafSecondary}
         transform="rotate(45 130 125)"
       />
       <Path
         d="M 130 125 Q 135 118 140 112"
-        stroke="#7C9885"
+        stroke={colors.stem}
         strokeWidth={2}
         fill="none"
         opacity={0.5}
@@ -65,7 +73,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={95}
         rx={16}
         ry={22}
-        fill="#7C9885"
+        fill={colors.leafTertiary}
         transform="rotate(-40 75 95)"
       />
 
@@ -75,7 +83,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={95}
         rx={16}
         ry={22}
-        fill="#9BC4BC"
+        fill={colors.leafPrimary}
         transform="rotate(40 125 95)"
       />
 
@@ -85,7 +93,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={70}
         rx={14}
         ry={20}
-        fill="#A8C5A6"
+        fill={colors.leafSecondary}
         transform="rotate(-35 82 70)"
       />
 
@@ -95,7 +103,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={70}
         rx={14}
         ry={20}
-        fill="#7C9885"
+        fill={colors.leafTertiary}
         transform="rotate(35 118 70)"
       />
 
@@ -105,7 +113,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={50}
         rx={11}
         ry={16}
-        fill="#9BC4BC"
+        fill={colors.leafPrimary}
         transform="rotate(-25 90 50)"
       />
 
@@ -115,7 +123,7 @@ export const GrowingPlantStage: React.FC = () => {
         cy={50}
         rx={11}
         ry={16}
-        fill="#A8C5A6"
+        fill={colors.leafSecondary}
         transform="rotate(25 110 50)"
       />
 
@@ -125,22 +133,22 @@ export const GrowingPlantStage: React.FC = () => {
         cy={42}
         rx={9}
         ry={14}
-        fill="#7C9885"
+        fill={colors.leafTertiary}
       />
 
       {/* Small pebbles and grass details */}
-      <Circle cx={55} cy={165} r={3} fill="#C19A6B" opacity={0.5} />
-      <Circle cx={145} cy={168} r={2.5} fill="#C19A6B" opacity={0.5} />
+      <Circle cx={55} cy={165} r={3} fill={colors.pebble} opacity={0.5} />
+      <Circle cx={145} cy={168} r={2.5} fill={colors.pebble} opacity={0.5} />
       <Path
         d="M 40 155 Q 42 150 40 145"
-        stroke="#9BC4BC"
+        stroke={colors.leafPrimary}
         strokeWidth={1.5}
         fill="none"
         opacity={0.3}
       />
       <Path
         d="M 160 155 Q 158 148 160 142"
-        stroke="#A8C5A6"
+        stroke={colors.leafSecondary}
         strokeWidth={1.5}
         fill="none"
         opacity={0.3}

@@ -1,6 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Platform } from 'react-native';
 import Animated, { FadeIn, Easing } from 'react-native-reanimated';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors, BorderRadius, Typography } from '@/constants/theme';
 import type { Quote } from '../utils/quotes';
 
 interface QuoteCardProps {
@@ -8,23 +10,50 @@ interface QuoteCardProps {
 }
 
 export const QuoteCard: React.FC<QuoteCardProps> = ({ quote }) => {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme];
+
   return (
     <Animated.View
-      style={styles.container}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.secondary,
+          ...Platform.select({
+            ios: {
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+            },
+            android: {
+              elevation: 3,
+            },
+          }),
+        },
+      ]}
       entering={FadeIn.duration(1000).easing(Easing.inOut(Easing.ease))}
     >
       {/* Decorative opening quotation mark */}
-      <Text style={styles.quotationMarkOpen}>"</Text>
+      <Text style={[styles.quotationMarkOpen, { color: colors.border }]}>
+        "
+      </Text>
 
       {/* Quote text */}
-      <Text style={styles.quoteText}>{quote.text}</Text>
+      <Text style={[styles.quoteText, { color: colors.text }]}>
+        {quote.text}
+      </Text>
 
       {/* Decorative closing quotation mark */}
-      <Text style={styles.quotationMarkClose}>"</Text>
+      <Text style={[styles.quotationMarkClose, { color: colors.border }]}>
+        "
+      </Text>
 
       {/* Author (if present) */}
       {quote.author && (
-        <Text style={styles.author}>— {quote.author}</Text>
+        <Text style={[styles.author, { color: colors.textSecondary }]}>
+          — {quote.author}
+        </Text>
       )}
     </Animated.View>
   );
@@ -32,20 +61,11 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({ quote }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#E8DCC4',
-    borderRadius: 16,
+    borderRadius: BorderRadius.xl,
     padding: 20,
     paddingHorizontal: 24,
     marginHorizontal: 16,
     marginVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
     position: 'relative',
   },
   quotationMarkOpen: {
@@ -53,8 +73,7 @@ const styles = StyleSheet.create({
     top: 8,
     left: 16,
     fontSize: 48,
-    fontWeight: '700',
-    color: '#D4C4A8',
+    fontWeight: Typography.weights.bold,
     opacity: 0.4,
     lineHeight: 48,
   },
@@ -63,24 +82,21 @@ const styles = StyleSheet.create({
     bottom: 8,
     right: 16,
     fontSize: 48,
-    fontWeight: '700',
-    color: '#D4C4A8',
+    fontWeight: Typography.weights.bold,
     opacity: 0.4,
     lineHeight: 48,
   },
   quoteText: {
-    fontSize: 16,
+    fontSize: Typography.sizes.md,
     lineHeight: 24,
-    color: '#3A3A3A',
     textAlign: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    fontWeight: '400',
+    fontWeight: Typography.weights.regular,
   },
   author: {
-    fontSize: 14,
+    fontSize: Typography.sizes.sm,
     lineHeight: 20,
-    color: '#6B6B6B',
     textAlign: 'center',
     marginTop: 12,
     fontStyle: 'italic',
